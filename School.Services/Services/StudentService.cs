@@ -12,10 +12,12 @@ namespace School.Services.Services
     public class StudentService : IStudentService
     {
         private readonly IStudentRepository _studentRepository;
+        private readonly IDepartmentService _departmentService;
 
-        public StudentService(IStudentRepository studentRepository)
+        public StudentService(IStudentRepository studentRepository, IDepartmentService departmentService)
         {
             _studentRepository = studentRepository;
+            _departmentService = departmentService;
         }
 
         public async Task<ServiceOpertaionResult> AddAsync(Student studentToAdd)
@@ -23,6 +25,14 @@ namespace School.Services.Services
             //You already added this in  School.Core.Features.Students.Commands.Validators
             //if (await IsNameExists(studentToAdd.Name))
             //    return ServiceOpertaionResult.Exists;
+
+            if (studentToAdd.DID is not null)
+            {
+                Department? dept = await _departmentService.GetDepartment(x => x.DID == studentToAdd.DID);
+                if (dept is null)
+                    return ServiceOpertaionResult.DependencyNotExist;
+            }
+
 
 
             await _studentRepository.AddAsync(studentToAdd);
@@ -83,7 +93,7 @@ namespace School.Services.Services
 
         public async Task<ServiceOpertaionResult> DeleteAsync(int id)
         {
-            Student? student = await _studentRepository.Get(x => x.StudID == id);
+            Student? student = await _studentRepository.GetAsync(x => x.StudID == id);
 
             if (student is null)
                 return ServiceOpertaionResult.NotExist;

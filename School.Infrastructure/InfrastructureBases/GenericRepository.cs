@@ -107,11 +107,14 @@ namespace School.Infrastructure.InfrastructureBases
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<T?> Get(Expression<Func<T, bool>> predicate)
+        public async Task<T?> GetAsync(Expression<Func<T, bool>> predicate)
         {
-
             return await _dbContext.Set<T>().FirstOrDefaultAsync(predicate);
+        }
 
+        public async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _dbContext.Set<T>().AnyAsync(predicate);
         }
     }
 }

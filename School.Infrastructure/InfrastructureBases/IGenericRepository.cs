@@ -18,8 +18,8 @@ namespace School.Infrastructure.InfrastructureBases
         Task UpdateAsync(T entity);
         Task UpdateRangeAsync(ICollection<T> entities);
         Task DeleteAsync(T entity);
-
-        Task<T?> Get(Expression<Func<T, bool>> predicate);
+        Task<T?> GetAsync(Expression<Func<T, bool>> predicate);
+        Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
 
     }
 }

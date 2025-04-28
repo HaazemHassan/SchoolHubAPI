@@ -33,8 +33,8 @@ namespace School.Core.Features.Students.Commands.Handlers
             var studentMapped = _mapper.Map<Student>(request);
             var result = await _studentService.AddAsync(studentMapped);
 
-            if (result == ServiceOpertaionResult.Exists)
-                return Conflict<string>("Student already exists");
+            if (result == ServiceOpertaionResult.DependencyNotExist)
+                return BadRequest<string>("Department not exists");
 
 
             return Created(" Added successfully");
