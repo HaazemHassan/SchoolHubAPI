@@ -5,7 +5,7 @@ namespace School.Core.Bases
 {
     public class ResponseHandler
     {
-        private readonly IStringLocalizer<Resources> _localizer;
+        protected readonly IStringLocalizer<Resources> _localizer;
 
 
         public ResponseHandler(IStringLocalizer<Resources> localizer)
@@ -22,7 +22,7 @@ namespace School.Core.Bases
                 Message = message is null ? _localizer[ResourcesKeys.Deleted] : message
             };
         }
-        public Response<T> Success<T>(T entity, object? Meta = null)
+        public Response<T> Success<T>(T? entity, object? Meta = null)
         {
             return new Response<T>()
             {

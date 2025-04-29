@@ -38,11 +38,11 @@ namespace School.Infrastructure
             services.AddIdentity<ApplicationUser, IdentityRole<int>>(option =>
             {
                 // Password settings.
-                option.Password.RequireDigit = true;
-                option.Password.RequireLowercase = true;
-                option.Password.RequireNonAlphanumeric = true;
-                option.Password.RequireUppercase = true;
-                option.Password.RequiredLength = 6;
+                option.Password.RequireDigit = false;
+                option.Password.RequireLowercase = false;
+                option.Password.RequireNonAlphanumeric = false;
+                option.Password.RequireUppercase = false;
+                option.Password.RequiredLength = 3;
                 option.Password.RequiredUniqueChars = 1;
 
                 // Lockout settings.
@@ -53,7 +53,7 @@ namespace School.Infrastructure
                 // User settings.
                 option.User.AllowedUserNameCharacters =
                 "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-                option.User.RequireUniqueEmail = false;
+                option.User.RequireUniqueEmail = true;
 
             }).AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
 

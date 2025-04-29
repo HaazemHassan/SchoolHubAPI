@@ -148,7 +148,7 @@
     <value>Invalid input. Please check the submitted data.</value>
   </data>
   <data name="Conflict" xml:space="preserve">
-    <value>This item already exists</value>
+    <value>The request can't be processed because the data already exists or causes a conflict.</value>
   </data>
   <data name="Created" xml:space="preserve">
     <value>Added successfully</value>
