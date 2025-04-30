@@ -148,7 +148,7 @@
     <value>مدخلات غير صحيحة</value>
   </data>
   <data name="Conflict" xml:space="preserve">
-    <value>العنصر موجود بالفعل</value>
+    <value>الطلب لا يمكن تنفيذه لأن البيانات موجودة مسبقًا أو تتعارض مع الحالة الحالية للموارد.</value>
   </data>
   <data name="Created" xml:space="preserve">
     <value>تمت الاضافة</value>

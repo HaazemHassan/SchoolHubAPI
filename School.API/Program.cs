@@ -29,15 +29,10 @@ namespace School.API
             builder.Services.AddSwaggerGen();
 
 
-            builder.Services.AddDbContext<AppDbContext>(options =>
-            {
-                options.UseSqlServer(builder.Configuration["ConnectionStrings:SqlServerConStr"]);
-            });
-
 
             #region Depenedencies
 
-            builder.Services.AddInfrastractureDepenedencies()
+            builder.Services.AddInfrastractureDependencies(builder.Configuration)
                             .AddServicesDepenedencies()
                             .AddCoreDepenedencies();
             #endregion

@@ -43,7 +43,7 @@ namespace School.Core.Features.Departments.Queries.Handlers
 
             var studentsPaginated = await _studentService.GetQueryable(s => s.DID == department.DID)
                 .Select(s => new StudentBasicDTO(s.StudID, s.Name))
-                .ToPaginatedListAsync(request.StudentPageNumber, request.StudentPageSize);
+                .ToPaginatedResultAsync(request.StudentPageNumber, request.StudentPageSize);
 
             DepartmentMapped.Students = studentsPaginated;
 

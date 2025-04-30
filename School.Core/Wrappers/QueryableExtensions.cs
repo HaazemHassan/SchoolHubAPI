@@ -4,7 +4,7 @@ namespace School.Core.Wrappers
 {
     public static class QueryableExtensions
     {
-        public static async Task<PaginatedResult<T>> ToPaginatedListAsync<T>(this IQueryable<T> sourceList, int pageNumber, int pageSize)
+        public static async Task<PaginatedResult<T>> ToPaginatedResultAsync<T>(this IQueryable<T> sourceList, int pageNumber, int pageSize)
             where T : class
         {
             if (sourceList == null)

@@ -5,12 +5,12 @@ namespace School.Core.Bases
 {
     public class ResponseHandler
     {
-        private readonly IStringLocalizer<Resources> _localizer;
+        protected readonly IStringLocalizer<Resources> localizer;
 
 
         public ResponseHandler(IStringLocalizer<Resources> localizer)
         {
-            _localizer = localizer;
+            this.localizer = localizer;
         }
         public Response<T> Deleted<T>(string? message = null)
         {
@@ -19,17 +19,17 @@ namespace School.Core.Bases
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Succeeded = true,
-                Message = message is null ? _localizer[ResourcesKeys.Deleted] : message
+                Message = message is null ? localizer[ResourcesKeys.Deleted] : message
             };
         }
-        public Response<T> Success<T>(T entity, object? Meta = null)
+        public Response<T> Success<T>(T? entity, object? Meta = null)
         {
             return new Response<T>()
             {
                 Data = entity,
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Succeeded = true,
-                Message = _localizer[ResourcesKeys.Succeeded],
+                Message = localizer[ResourcesKeys.Succeeded],
                 Meta = Meta
             };
         }
@@ -39,7 +39,7 @@ namespace School.Core.Bases
             {
                 StatusCode = System.Net.HttpStatusCode.Unauthorized,
                 Succeeded = true,
-                Message = _localizer[ResourcesKeys.UnAuthorized]
+                Message = localizer[ResourcesKeys.UnAuthorized]
             };
         }
         public Response<T> BadRequest<T>(string? Message = null)
@@ -48,7 +48,7 @@ namespace School.Core.Bases
             {
                 StatusCode = System.Net.HttpStatusCode.BadRequest,
                 Succeeded = false,
-                Message = Message == null ? _localizer[ResourcesKeys.BadRequest] : Message
+                Message = Message == null ? localizer[ResourcesKeys.BadRequest] : Message
             };
         }
 
@@ -58,7 +58,7 @@ namespace School.Core.Bases
             {
                 StatusCode = System.Net.HttpStatusCode.Conflict,
                 Succeeded = false,
-                Message = Message == null ? _localizer[ResourcesKeys.Conflict] : Message
+                Message = Message == null ? localizer[ResourcesKeys.Conflict] : Message
             };
         }
 
@@ -68,7 +68,7 @@ namespace School.Core.Bases
             {
                 StatusCode = System.Net.HttpStatusCode.NotFound,
                 Succeeded = false,
-                Message = message == null ? _localizer[ResourcesKeys.NotFound] : message
+                Message = message == null ? localizer[ResourcesKeys.NotFound] : message
             };
         }
 
@@ -79,7 +79,7 @@ namespace School.Core.Bases
                 Data = entity,
                 StatusCode = System.Net.HttpStatusCode.Created,
                 Succeeded = true,
-                Message = _localizer[ResourcesKeys.Created],
+                Message = localizer[ResourcesKeys.Created],
                 Meta = Meta,
 
             };
@@ -91,7 +91,7 @@ namespace School.Core.Bases
             {
                 StatusCode = System.Net.HttpStatusCode.Created,
                 Succeeded = true,
-                Message = _localizer[ResourcesKeys.Created],
+                Message = localizer[ResourcesKeys.Created],
                 Meta = Meta
             };
         }
@@ -103,7 +103,7 @@ namespace School.Core.Bases
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Succeeded = true,
-                Message = _localizer[ResourcesKeys.Updated]
+                Message = localizer[ResourcesKeys.Updated]
             };
         }
     }
