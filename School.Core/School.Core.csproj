@@ -25,11 +25,7 @@
     <Folder Include="Features\Instructors\Commands\" />
     <Folder Include="Features\Instructors\Queries\" />
     <Folder Include="Features\Subjects\" />
-    <Folder Include="Features\User\Queries\Handlers\" />
-    <Folder Include="Features\User\Queries\Models\" />
-    <Folder Include="Features\User\Queries\Results\" />
     <Folder Include="Mapping\Departments\CommandsMapping\" />
-    <Folder Include="Mapping\User\QueryMapping\" />
   </ItemGroup>
 
 </Project>

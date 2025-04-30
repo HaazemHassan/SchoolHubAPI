@@ -63,7 +63,7 @@ namespace School.Core.Features.Students.Queries.Handlers
                           s.Department != null ? s.Department.DName : null)
                  );
 
-            var paginatedList = await studentsQueryable.ToPaginatedListAsync(request.PageNumber, request.PageSize);
+            var paginatedList = await studentsQueryable.ToPaginatedResultAsync(request.PageNumber, request.PageSize);
             return paginatedList;
         }
     }
