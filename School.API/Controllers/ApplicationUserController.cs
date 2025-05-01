@@ -42,5 +42,12 @@ namespace School.API.Controllers
             var result = await mediator.Send(command);
             return NewResult(result);
         }
+
+        [HttpDelete("{Id:int}")]
+        public async Task<IActionResult> DeleteById([FromRoute] DeleteUserByIdCommand command)
+        {
+            var result = await mediator.Send(command);
+            return NewResult(result);
+        }
     }
 }

@@ -10,7 +10,9 @@ using School.Data.Entities.IdentityEntities;
 namespace School.Core.Features.User.Commands.Handlers
 {
     public class UserCommandHandler : ResponseHandler, IRequestHandler<AddUserCommand, Response<string>>,
-                                                       IRequestHandler<UpdateUserCommand, Response<string>>
+                                                       IRequestHandler<UpdateUserCommand, Response<string>>,
+                                                       IRequestHandler<DeleteUserByIdCommand, Response<string>>
+
     {
         private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -61,6 +63,20 @@ namespace School.Core.Features.User.Commands.Handlers
 
             return BadRequest<string>(updateResult?.Errors?.FirstOrDefault()?.Description);
 
+
+        }
+
+        public async Task<Response<string>> Handle(DeleteUserByIdCommand request, CancellationToken cancellationToken)
+        {
+            var user = await _userManager.FindByIdAsync(request.Id.ToString());
+            if (user is null)
+                return NotFound<string>();
+
+            var result = await _userManager.DeleteAsync(user);
+            if (result.Succeeded)
+                return Deleted<string>();
+
+            return BadRequest<string>();
 
         }
     }
