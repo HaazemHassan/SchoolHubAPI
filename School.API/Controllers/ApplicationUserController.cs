@@ -35,5 +35,12 @@ namespace School.API.Controllers
             var result = await mediator.Send(query);
             return NewResult(result);
         }
+
+        [HttpPut]
+        public async Task<IActionResult> UpdatePersonalInformations([FromBody] UpdateUserCommand command)
+        {
+            var result = await mediator.Send(command);
+            return NewResult(result);
+        }
     }
 }
