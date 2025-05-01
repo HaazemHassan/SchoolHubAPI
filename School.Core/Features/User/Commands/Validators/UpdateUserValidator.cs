@@ -12,6 +12,11 @@ namespace School.Core.Features.User.Commands.Validators
 
         public void ApplyValidaionRules()
         {
+
+            RuleFor(x => x.Id)
+                .NotEmpty().WithMessage("{PropertyName} can't be empty")
+                .NotNull().WithMessage("{PropertyName} can't be null");
+
             RuleFor(x => x.FullName)
                 .MinimumLength(4)
                 .MaximumLength(20)
