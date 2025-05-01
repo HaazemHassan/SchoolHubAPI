@@ -9,14 +9,18 @@ using School.Data.Entities.IdentityEntities;
 
 namespace School.Core.Features.User.Commands.Handlers
 {
-    public class UserCommandHandler : ResponseHandler, IRequestHandler<AddUserCommand, Response<string>>
+    public class UserCommandHandler : ResponseHandler, IRequestHandler<AddUserCommand, Response<string>>,
+                                                       IRequestHandler<UpdateUserCommand, Response<string>>
     {
         private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
-        public UserCommandHandler(IStringLocalizer<Resources> localizer, IMapper mapper, UserManager<ApplicationUser> userManager) : base(localizer)
+        private readonly IPasswordHasher<ApplicationUser> _passwordHasher;
+
+        public UserCommandHandler(IStringLocalizer<Resources> localizer, IMapper mapper, UserManager<ApplicationUser> userManager, IPasswordHasher<ApplicationUser> passwordHasher) : base(localizer)
         {
             _mapper = mapper;
             _userManager = userManager;
+            _passwordHasher = passwordHasher;
         }
 
 
@@ -38,6 +42,26 @@ namespace School.Core.Features.User.Commands.Handlers
                 return BadRequest<string>(result.Errors.FirstOrDefault()?.Description);
 
             return Created();
+        }
+
+        public async Task<Response<string>> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
+        {
+            ApplicationUser? userFromDb = await _userManager.FindByIdAsync(request.Id.ToString());
+            if (userFromDb is null)
+                return NotFound<string>();
+
+            bool isPasswordValid = await _userManager.CheckPasswordAsync(userFromDb, request.Password);
+            if (!isPasswordValid)
+                return Unauthorized<string>();
+
+            var userMapped = _mapper.Map(request, userFromDb);
+            var updateResult = await _userManager.UpdateAsync(userMapped);
+            if (updateResult.Succeeded)
+                return Updated<string>();
+
+            return BadRequest<string>(updateResult?.Errors?.FirstOrDefault()?.Description);
+
+
         }
     }
 }
