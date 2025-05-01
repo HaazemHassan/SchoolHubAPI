@@ -11,8 +11,8 @@ using School.Data.Entities.IdentityEntities;
 namespace School.Core.Features.User.Commands.Handlers
 {
     public class UserCommandHandler : ResponseHandler, IRequestHandler<AddUserCommand, Response<string>>,
-                                                       IRequestHandler<UpdateUserCommand, Response<string>>,
-                                                       IRequestHandler<DeleteUserByIdCommand, Response<string>>
+                                                       IRequestHandler<UpdateUserCommand, Response<string>>, IRequestHandler<DeleteUserByIdCommand, Response<string>>,
+                                                       IRequestHandler<ChangePasswordCommand, Response<string>>
 
     {
         private readonly IMapper _mapper;
@@ -59,8 +59,8 @@ namespace School.Core.Features.User.Commands.Handlers
             if (isUsernameExist)
                 return Conflict<string>("Username already exists");
 
-            bool isPasswordValid = await _userManager.CheckPasswordAsync(userFromDb, request.Password);
-            if (!isPasswordValid)
+            bool isPasswordCorrect = await _userManager.CheckPasswordAsync(userFromDb, request.Password);
+            if (!isPasswordCorrect)
                 return Unauthorized<string>();
 
             var userMapped = _mapper.Map(request, userFromDb);
@@ -85,6 +85,23 @@ namespace School.Core.Features.User.Commands.Handlers
 
             return BadRequest<string>();
 
+        }
+
+        public async Task<Response<string>> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
+        {
+            var userFromDb = await _userManager.FindByIdAsync(request.Id.ToString());
+            if (userFromDb is null)
+                return NotFound<string>();
+
+            bool isUserPasswordCorrect = await _userManager.CheckPasswordAsync(userFromDb, request.CurrentPassword);
+            if (!isUserPasswordCorrect)
+                return Unauthorized<string>();
+
+            var result = await _userManager.ChangePasswordAsync(userFromDb, request.CurrentPassword, request.NewPassword);
+            if (result.Succeeded)
+                return Updated<string>();
+
+            return BadRequest<string>();
         }
     }
 }
