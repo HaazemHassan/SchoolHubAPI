@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using School.Core.Bases;
 using School.Core.Features.User.Commands.Models;
@@ -51,6 +52,12 @@ namespace School.Core.Features.User.Commands.Handlers
             ApplicationUser? userFromDb = await _userManager.FindByIdAsync(request.Id.ToString());
             if (userFromDb is null)
                 return NotFound<string>();
+
+            var isUsernameExist = (await _userManager.Users
+                   .FirstOrDefaultAsync(x => x.UserName == request.UserName && x.Id != request.Id)) is not null;
+
+            if (isUsernameExist)
+                return Conflict<string>("Username already exists");
 
             bool isPasswordValid = await _userManager.CheckPasswordAsync(userFromDb, request.Password);
             if (!isPasswordValid)
