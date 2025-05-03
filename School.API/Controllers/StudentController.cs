@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using School.API.Bases;
 using School.Core.Bases;
@@ -8,7 +9,7 @@ using School.Core.Features.Students.Queries.Results;
 
 namespace School.API.Controllers
 {
-
+    [Authorize]
     public class StudentController : CustomControllerBase
     {
 
@@ -31,6 +32,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetStudentById(int id)
         {
             Response<GetStudentByIdResponse>? response = await mediator.Send(new GetStudentByIdQuery(id));

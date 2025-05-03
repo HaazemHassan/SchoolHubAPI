@@ -4,11 +4,9 @@ using School.API.Bases;
 using School.Core.Features.User.Commands.Models;
 using School.Core.Features.User.Queries.Models;
 
-[Route("api/v1/users")]
-[ApiController]
-public class UsersController : CustomControllerBase
+public class ApplicationUserController : CustomControllerBase
 {
-    public UsersController(IMediator mediator) : base(mediator) { }
+    public ApplicationUserController(IMediator mediator) : base(mediator) { }
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] AddUserCommand command)

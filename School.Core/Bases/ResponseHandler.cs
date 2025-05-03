@@ -33,13 +33,13 @@ namespace School.Core.Bases
                 Meta = Meta
             };
         }
-        public Response<T> Unauthorized<T>()
+        public Response<T> Unauthorized<T>(string? message = null)
         {
             return new Response<T>()
             {
                 StatusCode = System.Net.HttpStatusCode.Unauthorized,
                 Succeeded = true,
-                Message = localizer[ResourcesKeys.UnAuthorized]
+                Message = message ?? localizer[ResourcesKeys.UnAuthorized]
             };
         }
         public Response<T> BadRequest<T>(string? Message = null)
@@ -58,7 +58,7 @@ namespace School.Core.Bases
             {
                 StatusCode = System.Net.HttpStatusCode.Conflict,
                 Succeeded = false,
-                Message = Message == null ? localizer[ResourcesKeys.Conflict] : Message
+                Message = Message ?? localizer[ResourcesKeys.Conflict]
             };
         }
 
@@ -68,7 +68,7 @@ namespace School.Core.Bases
             {
                 StatusCode = System.Net.HttpStatusCode.NotFound,
                 Succeeded = false,
-                Message = message == null ? localizer[ResourcesKeys.NotFound] : message
+                Message = message ?? localizer[ResourcesKeys.NotFound]
             };
         }
 
