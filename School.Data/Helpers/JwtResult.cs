@@ -1,0 +1,16 @@
+﻿namespace School.Data.Helpers
+{
+    public class JwtResult
+    {
+        public string AccessToken { get; set; }
+        public RefreshTokenDTO? RefreshToken { get; set; }
+    }
+
+    public class RefreshTokenDTO
+    {
+        public string Token { get; set; }
+        public string? Username { get; set; }
+        public DateTime ExpirationDate { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+}

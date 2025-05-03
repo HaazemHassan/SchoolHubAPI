@@ -19,6 +19,7 @@ namespace School.Infrastructure.Context
         public virtual DbSet<StudentSubject> StudentSubjects { get; set; }
         public virtual DbSet<Instructor> Instructors { get; set; }
         public virtual DbSet<InstructorSubject> InstructorSubjects { get; set; }
+        public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
 
 
 

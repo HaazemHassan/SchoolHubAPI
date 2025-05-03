@@ -12,5 +12,7 @@
         public bool ValidateAudience { get; set; }
         public bool ValidateLifeTime { get; set; }
         public bool ValidateIssuerSigningKey { get; set; }
+        public int AccessTokenExpirationMinutes { get; set; }
+        public int RefreshTokenExpirationDays { get; set; }
     }
 }
