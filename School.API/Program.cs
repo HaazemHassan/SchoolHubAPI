@@ -1,7 +1,8 @@
-
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.OpenApi;
+using School.API.StartupExtension;
 using School.Core;
 using School.Core.Middleware;
 using School.Infrastructure;
@@ -24,17 +25,13 @@ namespace School.API
             {
                 options.UseSqlServer(builder.Configuration["ConnectionStrings:SqlServerConStr"]);
             });
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
-
-
 
             #region Depenedencies
 
             builder.Services.AddInfrastractureDependencies(builder.Configuration)
                             .AddServicesDepenedencies()
-                            .AddCoreDepenedencies();
+                            .AddCoreDepenedencies()
+                            .ConfigureServices(builder.Configuration);
             #endregion
 
             #region Localizaion
@@ -81,7 +78,12 @@ namespace School.API
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                app.UseSwagger();
+                // Temporary workaround: Downgrade Swagger to OpenAPI 2.0
+                // Reason: Package -> Swashbuckle.AspNetCore.Annotations (v8.1.1) is not fully compatible with OpenAPI 3.x
+                app.UseSwagger(c =>
+                {
+                    c.OpenApiVersion = OpenApiSpecVersion.OpenApi2_0;
+                });
                 app.UseSwaggerUI();
             }
 
@@ -95,6 +97,7 @@ namespace School.API
             app.UseHttpsRedirection();
             app.UseCors(MyAllowSpecificOrigins);
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 
