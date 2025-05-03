@@ -6,11 +6,12 @@ using School.Core.Bases;
 using School.Core.Features.Authentication.Commands.Models;
 using School.Core.SharedResources;
 using School.Data.Entities.IdentityEntities;
+using School.Data.Helpers;
 using School.Services.ServicesContracts;
 
 namespace School.Core.Features.Authentication.Commands.Handlers
 {
-    public class AuthenticationCommandHandler : ResponseHandler, IRequestHandler<SignInCommand, Response<string>>
+    public class AuthenticationCommandHandler : ResponseHandler, IRequestHandler<SignInCommand, Response<JwtResult>>
     {
         private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -30,17 +31,17 @@ namespace School.Core.Features.Authentication.Commands.Handlers
             _authenticationService = authenticationService;
         }
 
-        public async Task<Response<string>> Handle(SignInCommand request, CancellationToken cancellationToken)
+        public async Task<Response<JwtResult>> Handle(SignInCommand request, CancellationToken cancellationToken)
         {
             var userFromDb = await _userManager.FindByNameAsync(request.Username);
             if (userFromDb is null)
-                return Unauthorized<string>("Invalid username or password");
+                return Unauthorized<JwtResult>("Invalid username or password");
 
             bool isAuthenticated = await _userManager.CheckPasswordAsync(userFromDb, request.Password);
             if (!isAuthenticated)
-                return Unauthorized<string>("Invalid username or password");
+                return Unauthorized<JwtResult>("Invalid username or password");
 
-            string token = await _authenticationService.GetJwtAsync(userFromDb);
+            JwtResult token = await _authenticationService.GenerateJwtAsync(userFromDb);
             return Success(token);
 
         }
