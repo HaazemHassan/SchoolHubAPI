@@ -1,5 +1,5 @@
 ﻿using School.Data.Entities;
-using School.Data.Helpers;
+using School.Data.Helpers.Enums;
 using School.Services.Bases;
 using System.Linq.Expressions;
 
