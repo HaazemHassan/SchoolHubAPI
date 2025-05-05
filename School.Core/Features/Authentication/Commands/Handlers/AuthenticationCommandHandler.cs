@@ -11,7 +11,8 @@ using School.Services.ServicesContracts;
 
 namespace School.Core.Features.Authentication.Commands.Handlers
 {
-    public class AuthenticationCommandHandler : ResponseHandler, IRequestHandler<SignInCommand, Response<JwtResult>>
+    public class AuthenticationCommandHandler : ResponseHandler, IRequestHandler<SignInCommand, Response<JwtResult>>,
+                                                    IRequestHandler<RefreshTokenCommand, Response<JwtResult>>
     {
         private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -41,8 +42,24 @@ namespace School.Core.Features.Authentication.Commands.Handlers
             if (!isAuthenticated)
                 return Unauthorized<JwtResult>("Invalid username or password");
 
-            JwtResult token = await _authenticationService.GenerateJwtAsync(userFromDb);
+            JwtResult token = await _authenticationService.AuthenticateAsync(userFromDb);
             return Success(token);
+
+        }
+
+
+        public async Task<Response<JwtResult>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                JwtResult jwtResult = await _authenticationService.ReAuthenticateAsync(request.RefreshToken, request.AccessToken);
+                return Success(jwtResult);
+
+            }
+            catch (Exception e)
+            {
+                return Unauthorized<JwtResult>();
+            }
 
         }
     }

@@ -1,7 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using School.Data.Entities;
-using School.Data.Helpers;
+using School.Data.Helpers.Enums;
 using School.Infrastructure.RepositoriesContracts;
 using School.Services.Bases;
 using School.Services.ServicesContracts;

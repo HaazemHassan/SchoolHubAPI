@@ -17,7 +17,14 @@ namespace School.API.Controllers
 
 
         [HttpPost("Login")]
-        public async Task<IActionResult> Login(SignInCommand command)
+        public async Task<IActionResult> Login([FromBody] SignInCommand command)
+        {
+            var result = await _mediator.Send(command);
+            return NewResult(result);
+        }
+
+        [HttpPost("Refresh-token")]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommand command)
         {
             var result = await _mediator.Send(command);
             return NewResult(result);

@@ -9,7 +9,7 @@
     public class RefreshTokenDTO
     {
         public string Token { get; set; }
-        public string? Username { get; set; }
+        public int UserId { get; set; }
         public DateTime ExpirationDate { get; set; }
         public DateTime CreatedAt { get; set; }
     }
