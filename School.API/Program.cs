@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -5,6 +6,7 @@ using Microsoft.OpenApi;
 using School.API.StartupExtension;
 using School.Core;
 using School.Core.Middleware;
+using School.Data.Entities.IdentityEntities;
 using School.Infrastructure;
 using School.Infrastructure.Context;
 using School.Services;
@@ -14,7 +16,7 @@ namespace School.API
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public async static Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -74,7 +76,15 @@ namespace School.API
 
 
             var app = builder.Build();
-
+            #region Seed Data
+            using (var scope = app.Services.CreateScope())
+            {
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
+                await ApplicationRoleSeeder.SeedAsync(roleManager);
+                await ApplicationUserSeeder.SeedAsync(userManager);
+            }
+            #endregion
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
