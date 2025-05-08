@@ -35,7 +35,7 @@ namespace School.Infrastructure
         private static IServiceCollection IdentityServiceConfiguations(IServiceCollection services)
         {
 
-            services.AddIdentity<ApplicationUser, IdentityRole<int>>(option =>
+            services.AddIdentity<ApplicationUser, ApplicationRole>(option =>
             {
                 // Password settings.
                 option.Password.RequireDigit = false;
