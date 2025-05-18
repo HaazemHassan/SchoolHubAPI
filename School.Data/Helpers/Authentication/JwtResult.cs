@@ -1,4 +1,4 @@
-﻿namespace School.Data.Helpers
+﻿namespace School.Data.Helpers.Authentication
 {
     public class JwtResult
     {

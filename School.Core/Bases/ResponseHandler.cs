@@ -33,6 +33,16 @@ namespace School.Core.Bases
                 Meta = Meta
             };
         }
+        public Response<string> Success(object? Meta = null)
+        {
+            return new Response<string>()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Succeeded = true,
+                Message = localizer[ResourcesKeys.Succeeded],
+                Meta = Meta
+            };
+        }
         public Response<T> Unauthorized<T>(string? message = null)
         {
             return new Response<T>()

@@ -6,7 +6,7 @@ using School.Core.Bases;
 using School.Core.Features.Authentication.Commands.Models;
 using School.Core.SharedResources;
 using School.Data.Entities.IdentityEntities;
-using School.Data.Helpers;
+using School.Data.Helpers.Authentication;
 using School.Services.ServicesContracts;
 
 namespace School.Core.Features.Authentication.Commands.Handlers

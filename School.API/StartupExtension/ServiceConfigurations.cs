@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using School.Data.Helpers;
+using School.Data.Helpers.Authentication;
 using System.Text;
 
 namespace School.API.StartupExtension

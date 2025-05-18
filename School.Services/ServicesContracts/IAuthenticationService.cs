@@ -1,5 +1,5 @@
 ﻿using School.Data.Entities.IdentityEntities;
-using School.Data.Helpers;
+using School.Data.Helpers.Authentication;
 using System.Security.Claims;
 
 namespace School.Services.ServicesContracts

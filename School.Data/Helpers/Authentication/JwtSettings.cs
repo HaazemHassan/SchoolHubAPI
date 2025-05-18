@@ -1,4 +1,4 @@
-﻿namespace School.Data.Helpers
+﻿namespace School.Data.Helpers.Authentication
 {
     /// <summary>
     /// Used to bind jwt settings from appsettings
