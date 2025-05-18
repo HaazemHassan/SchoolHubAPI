@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using School.Data.Entities.IdentityEntities;
-using School.Data.Helpers;
+using School.Data.Helpers.Authentication;
 using School.Infrastructure.RepositoriesContracts;
 using School.Services.ServicesContracts;
 using System.IdentityModel.Tokens.Jwt;
