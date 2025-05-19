@@ -2,6 +2,7 @@
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using School.Data.Helpers.Authentication;
+using School.Data.Helpers.Email;
 using System.Text;
 
 namespace School.API.StartupExtension
@@ -12,6 +13,7 @@ namespace School.API.StartupExtension
         {
             AuthenticationServiceConfiguations(services, configuration);
             SwaggerServiceConfiguations(services, configuration);
+            EmailServiceConfiguations(services, configuration);
             return services;
         }
 
@@ -81,5 +83,13 @@ namespace School.API.StartupExtension
             });
             return services;
         }
+        private static IServiceCollection EmailServiceConfiguations(this IServiceCollection services, IConfiguration configuration)
+        {
+            var emailSettings = new EmailSettings();
+            configuration.GetSection("emailSettings").Bind(emailSettings);
+            services.AddSingleton(emailSettings);
+            return services;
+        }
+
     }
 }
