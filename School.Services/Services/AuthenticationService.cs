@@ -149,6 +149,9 @@ namespace School.Services.Services
             foreach (var role in roles)
                 claims.Add(new Claim(ClaimTypes.Role, role));
 
+            var customClaims = await _userManager.GetClaimsAsync(user);
+            claims.AddRange(customClaims);
+
             return claims;
         }
         private SigningCredentials GetSigningCredentials()
