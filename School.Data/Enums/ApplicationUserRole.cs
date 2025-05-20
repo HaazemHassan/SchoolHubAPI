@@ -1,6 +1,6 @@
 ﻿namespace School.Data.Enums
 {
-    public enum UserRole
+    public enum ApplicationUserRole
     {
         Admin = 0, User = 1
     }
