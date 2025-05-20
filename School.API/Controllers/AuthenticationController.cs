@@ -29,5 +29,20 @@ namespace School.API.Controllers
             var result = await _mediator.Send(command);
             return NewResult(result);
         }
+
+
+        [HttpGet("Confirm-email")]
+        public async Task<IActionResult> ConfirmEmail([FromQuery] ConfirmEmailCommand command)
+        {
+            var result = await _mediator.Send(command);
+            return NewResult(result);
+        }
+
+        [HttpGet("resend-confirmation-email")]
+        public async Task<IActionResult> ResendConfirmationEmail([FromQuery] ResendConfirmationEmailCommand command)
+        {
+            var result = await _mediator.Send(command);
+            return NewResult(result);
+        }
     }
 }

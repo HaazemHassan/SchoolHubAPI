@@ -7,29 +7,35 @@ using School.Core.Features.Authentication.Commands.Models;
 using School.Core.SharedResources;
 using School.Data.Entities.IdentityEntities;
 using School.Data.Helpers.Authentication;
+using School.Services.Bases;
 using School.Services.ServicesContracts;
 
 namespace School.Core.Features.Authentication.Commands.Handlers
 {
     public class AuthenticationCommandHandler : ResponseHandler, IRequestHandler<SignInCommand, Response<JwtResult>>,
-                                                    IRequestHandler<RefreshTokenCommand, Response<JwtResult>>
+                                                    IRequestHandler<RefreshTokenCommand, Response<JwtResult>>,
+                                                    IRequestHandler<ConfirmEmailCommand, Response<string>>,
+                                                    IRequestHandler<ResendConfirmationEmailCommand, Response<string>>
     {
         private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IAuthenticationService _authenticationService;
+        private readonly IApplicationUserService _applicationUserService;
 
         public AuthenticationCommandHandler(IStringLocalizer<Resources> localizer,
                       IMapper mapper,
                       UserManager<ApplicationUser> userManager,
                       SignInManager<ApplicationUser> signInManager
 ,
-                      IAuthenticationService authenticationService) : base(localizer)
+                      IAuthenticationService authenticationService,
+                      IApplicationUserService applicationUserService) : base(localizer)
         {
             _mapper = mapper;
             _userManager = userManager;
             _signInManager = signInManager;
             _authenticationService = authenticationService;
+            _applicationUserService = applicationUserService;
         }
 
         public async Task<Response<JwtResult>> Handle(SignInCommand request, CancellationToken cancellationToken)
@@ -42,8 +48,11 @@ namespace School.Core.Features.Authentication.Commands.Handlers
             if (!isAuthenticated)
                 return Unauthorized<JwtResult>("Invalid username or password");
 
-            JwtResult token = await _authenticationService.AuthenticateAsync(userFromDb);
-            return Success(token);
+            if (!userFromDb.EmailConfirmed)
+                return Unauthorized<JwtResult>("Please confirm your email first");
+
+            JwtResult? token = await _authenticationService.AuthenticateAsync(userFromDb);
+            return token is null ? BadRequest<JwtResult>("Something went wrong") : Success(token);
 
         }
 
@@ -52,8 +61,8 @@ namespace School.Core.Features.Authentication.Commands.Handlers
         {
             try
             {
-                JwtResult jwtResult = await _authenticationService.ReAuthenticateAsync(request.RefreshToken, request.AccessToken);
-                return Success(jwtResult);
+                JwtResult? jwtResult = await _authenticationService.ReAuthenticateAsync(request.RefreshToken, request.AccessToken);
+                return jwtResult is null ? Unauthorized<JwtResult>() : Success(jwtResult);
 
             }
             catch (Exception e)
@@ -61,6 +70,29 @@ namespace School.Core.Features.Authentication.Commands.Handlers
                 return Unauthorized<JwtResult>();
             }
 
+        }
+
+        public async Task<Response<string>> Handle(ConfirmEmailCommand request, CancellationToken cancellationToken)
+        {
+            var result = await _authenticationService.ConfirmEmailAsync(request.UserId, request.Code);
+            return result switch
+            {
+                ServiceOpertaionResult.Succeeded => Success(),
+                ServiceOpertaionResult.NotExist => NotFound<string>(),
+                _ => BadRequest<string>(),
+            };
+
+        }
+
+        public async Task<Response<string>> Handle(ResendConfirmationEmailCommand request, CancellationToken cancellationToken)
+        {
+            // TODO: we should handle if old email.
+
+            var user = await _userManager.FindByEmailAsync(request.Email);
+            if (user is null)
+                return NotFound<string>();
+            var sentSuccesfully = await _applicationUserService.SendConfirmationEmailAsync(user);
+            return sentSuccesfully ? Success() : BadRequest<string>();
         }
     }
 }

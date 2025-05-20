@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using School.Data.Entities.IdentityEntities;
 using School.Data.Helpers.Authentication;
 using School.Infrastructure.RepositoriesContracts;
+using School.Services.Bases;
 using School.Services.ServicesContracts;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -18,21 +19,26 @@ namespace School.Services.Services
         private readonly JwtSettings _jwtSettings;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
+        private readonly IApplicationUserService _applicationUserService;
 
 
 
-        public AuthenticationService(JwtSettings jwtSettings, UserManager<ApplicationUser> userManager, IRefreshTokenRepository refreshTokenRepository)
+        public AuthenticationService(JwtSettings jwtSettings, UserManager<ApplicationUser> userManager, IRefreshTokenRepository refreshTokenRepository, IApplicationUserService applicationUserService)
         {
             _jwtSettings = jwtSettings;
             _userManager = userManager;
             _refreshTokenRepository = refreshTokenRepository;
+            _applicationUserService = applicationUserService;
         }
 
 
-        public async Task<JwtResult> AuthenticateAsync(ApplicationUser user)
+        public async Task<JwtResult?> AuthenticateAsync(ApplicationUser user, DateTime? refreshTokenExpDate)
         {
+            if (user is null)
+                return null;
+
             var jwtSecurityToken = await GenerateAccessToken(user);
-            var refreshToken = GenerateRefreshToken(user.Id);
+            var refreshToken = GenerateRefreshToken(user.Id, refreshTokenExpDate);
             await AddRefreshTokenToDatabase(refreshToken, jwtSecurityToken.Id);
 
             JwtResult jwtResult = new JwtResult
@@ -43,7 +49,7 @@ namespace School.Services.Services
             return jwtResult;
         }
 
-        public async Task<JwtResult> ReAuthenticateAsync(string refreshToken, string accessToken)
+        public async Task<JwtResult?> ReAuthenticateAsync(string refreshToken, string accessToken)
         {
             //Validate token
             var principal = GetPrincipalFromAcessToken(accessToken);
@@ -74,21 +80,16 @@ namespace School.Services.Services
             if (currentRefreshToken is null || !currentRefreshToken.IsActive)
                 throw new SecurityTokenException("Refresh Token is not valid");
 
-            var newRefreshToken = GenerateRefreshToken(user.Id, currentRefreshToken.Expires);
-            currentRefreshToken.ReplacedByToken = newRefreshToken.Token;
+            //new jwt result
+            var jwtResult = await AuthenticateAsync(user, currentRefreshToken.Expires);
+            if (jwtResult is null)
+                return null;
+            currentRefreshToken.ReplacedByToken = jwtResult.RefreshToken.Token;
             currentRefreshToken.RevokationDate = DateTime.UtcNow;
             await _refreshTokenRepository.UpdateAsync(currentRefreshToken);
 
-            var newJwt = await GenerateAccessToken(user);
-            await AddRefreshTokenToDatabase(newRefreshToken, newJwt.Id);
-
-            var jwtResult = new JwtResult
-            {
-                AccessToken = new JwtSecurityTokenHandler().WriteToken(newJwt),
-                RefreshToken = newRefreshToken
-            };
-
             return jwtResult;
+
         }
 
         public ClaimsPrincipal? GetPrincipalFromAcessToken(string token, bool validateLifetime = true)
@@ -122,6 +123,22 @@ namespace School.Services.Services
             }
         }
 
+        public async Task<ServiceOpertaionResult> ConfirmEmailAsync(int userId, string code)
+        {
+            if (code is null)
+                return ServiceOpertaionResult.Failed;
+
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user is null)
+                return ServiceOpertaionResult.NotExist;
+
+            if (user.EmailConfirmed)
+                return ServiceOpertaionResult.Failed;
+
+            var confirmEmail = await _userManager.ConfirmEmailAsync(user, code);
+            return confirmEmail.Succeeded ? ServiceOpertaionResult.Succeeded : ServiceOpertaionResult.Failed;
+
+        }
 
         #region Helper functions
         private async Task<JwtSecurityToken> GenerateAccessToken(ApplicationUser user)
@@ -197,8 +214,6 @@ namespace School.Services.Services
             var response = handler.ReadJwtToken(accessToken);
             return response;
         }
-
-
 
 
 
