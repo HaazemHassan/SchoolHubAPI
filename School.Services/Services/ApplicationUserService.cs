@@ -42,7 +42,7 @@ namespace School.Services.Services
         {
 
             if (user is null || password is null)
-                return ServiceOpertaionResult.Failed;
+                return ServiceOpertaionResult.InvalidParameters;
 
 
             await using (var transaction = await _dbContext.Database.BeginTransactionAsync())
@@ -88,8 +88,52 @@ namespace School.Services.Services
             };
             var returnUrl = resquestAccessor.Scheme + "://" + resquestAccessor.Host + _urlHelper.Action(confrimEmailActionContext);
             var message = $"To Confirm Email Click Link: {returnUrl}";
-            var sendResult = await _emailsService.SendEmail(user.Email, message);
+            var sendResult = await _emailsService.SendEmail(user.Email, message, "Confirm email");
             return sendResult;
+        }
+
+        public async Task<ServiceOpertaionResult> ConfirmEmailAsync(int userId, string code)
+        {
+            if (code is null)
+                return ServiceOpertaionResult.InvalidParameters;
+
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user is null)
+                return ServiceOpertaionResult.NotExist;
+
+            if (user.EmailConfirmed)
+                return ServiceOpertaionResult.Failed;
+
+            var confirmEmail = await _userManager.ConfirmEmailAsync(user, code);
+            return confirmEmail.Succeeded ? ServiceOpertaionResult.Succeeded : ServiceOpertaionResult.Failed;
+
+        }
+
+        public async Task<ServiceOpertaionResult> ResetPasswordAsync(ApplicationUser? user, string newPassword)
+        {
+            if (user is null || newPassword is null)
+                return ServiceOpertaionResult.InvalidParameters;
+
+            await using var trans = await _dbContext.Database.BeginTransactionAsync();
+            try
+            {
+                await _userManager.RemovePasswordAsync(user);
+                var result = await _userManager.AddPasswordAsync(user, newPassword);
+                if (!result.Succeeded)
+                {
+                    await trans.RollbackAsync();
+                    return ServiceOpertaionResult.Failed;
+                }
+
+                await trans.CommitAsync();
+                return ServiceOpertaionResult.Succeeded;
+            }
+            catch
+            {
+                await trans.RollbackAsync();
+                return ServiceOpertaionResult.Failed;
+
+            }
         }
     }
 }

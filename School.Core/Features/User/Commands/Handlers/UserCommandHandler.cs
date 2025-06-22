@@ -14,7 +14,8 @@ namespace School.Core.Features.User.Commands.Handlers
 {
     public class UserCommandHandler : ResponseHandler, IRequestHandler<AddUserCommand, Response<string>>,
                                                        IRequestHandler<UpdateUserCommand, Response<string>>, IRequestHandler<DeleteUserByIdCommand, Response<string>>,
-                                                       IRequestHandler<ChangePasswordCommand, Response<string>>
+                                                       IRequestHandler<ChangePasswordCommand, Response<string>>,
+                                                      IRequestHandler<ResetPasswordCommand, Response<string>>
 
     {
         private readonly IMapper _mapper;
@@ -97,6 +98,15 @@ namespace School.Core.Features.User.Commands.Handlers
                 return Updated<string>();
 
             return BadRequest<string>();
+        }
+
+        public async Task<Response<string>> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
+        {
+            var user = await _userManager.FindByIdAsync(request.UserId.ToString());
+            var result = await _applicationUserService.ResetPasswordAsync(user, request.NewPassword);
+            if (result == ServiceOpertaionResult.Succeeded)
+                return Success();
+            return BadRequest<string>("Failed to reset password. Please try again later.");
         }
     }
 }

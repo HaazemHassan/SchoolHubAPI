@@ -15,7 +15,9 @@ namespace School.Core.Features.Authentication.Commands.Handlers
     public class AuthenticationCommandHandler : ResponseHandler, IRequestHandler<SignInCommand, Response<JwtResult>>,
                                                     IRequestHandler<RefreshTokenCommand, Response<JwtResult>>,
                                                     IRequestHandler<ConfirmEmailCommand, Response<string>>,
-                                                    IRequestHandler<ResendConfirmationEmailCommand, Response<string>>
+                                                    IRequestHandler<ResendConfirmationEmailCommand, Response<string>>,
+                                                    IRequestHandler<SendResetPasswordCodeCommand, Response<string>>,
+                                                    IRequestHandler<VerifyResetPasswordCodeCommand, Response<JwtResult>>
     {
         private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -74,7 +76,7 @@ namespace School.Core.Features.Authentication.Commands.Handlers
 
         public async Task<Response<string>> Handle(ConfirmEmailCommand request, CancellationToken cancellationToken)
         {
-            var result = await _authenticationService.ConfirmEmailAsync(request.UserId, request.Code);
+            var result = await _applicationUserService.ConfirmEmailAsync(request.UserId, request.Code);
             return result switch
             {
                 ServiceOpertaionResult.Succeeded => Success(),
@@ -93,6 +95,28 @@ namespace School.Core.Features.Authentication.Commands.Handlers
                 return NotFound<string>();
             var sentSuccesfully = await _applicationUserService.SendConfirmationEmailAsync(user);
             return sentSuccesfully ? Success() : BadRequest<string>();
+        }
+
+        public async Task<Response<string>> Handle(SendResetPasswordCodeCommand request, CancellationToken cancellationToken)
+        {
+            var result = await _authenticationService.SendResetPasswordCodeAsync(request.Email);
+            return result switch
+            {
+                ServiceOpertaionResult.Succeeded => Success(),
+                ServiceOpertaionResult.NotExist => NotFound<string>(),
+                _ => BadRequest<string>()
+            };
+
+        }
+
+        public async Task<Response<JwtResult>> Handle(VerifyResetPasswordCodeCommand request, CancellationToken cancellationToken)
+        {
+            JwtResult? jwtResult = await _authenticationService.VerifyResetPasswordCodeAsync(request.Email, request.Code);
+            if (jwtResult is null)
+                return Unauthorized<JwtResult>("Invalid reset password code or email");
+
+            return Success(jwtResult);
+
         }
     }
 }

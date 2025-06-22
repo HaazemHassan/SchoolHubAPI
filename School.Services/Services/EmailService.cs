@@ -14,8 +14,10 @@ namespace School.Services.Services
         {
             _emailSettings = emailSettings;
         }
-        public async Task<bool> SendEmail(string email, string Message)
+        public async Task<bool> SendEmail(string email, string messageBody, string? purpose)
         {
+            if (email is null || messageBody is null)
+                return false;
             try
             {
                 using (var client = new SmtpClient())
@@ -24,7 +26,7 @@ namespace School.Services.Services
                     await client.AuthenticateAsync(_emailSettings.SenderEmail, _emailSettings.Password);
                     var bodybuilder = new BodyBuilder
                     {
-                        HtmlBody = $"{Message}",
+                        HtmlBody = $"{messageBody}",
                         TextBody = "wellcome",
                     };
                     var message = new MimeMessage
@@ -33,7 +35,7 @@ namespace School.Services.Services
                     };
                     message.From.Add(new MailboxAddress("SchoohAPI", _emailSettings.SenderEmail));
                     message.To.Add(new MailboxAddress("testing", email));
-                    message.Subject = "new Contact Submitted Data";
+                    message.Subject = purpose ?? "Email subject";
                     await client.SendAsync(message);
                     await client.DisconnectAsync(true);
                 }

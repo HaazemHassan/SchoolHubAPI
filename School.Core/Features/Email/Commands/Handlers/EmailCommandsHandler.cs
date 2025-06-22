@@ -23,7 +23,7 @@ namespace School.Core.Features.Email.Commands.Handlers
 
         public async Task<Response<string>> Handle(SendEmailCommand request, CancellationToken cancellationToken)
         {
-            var result = await _emailService.SendEmail(request.ReceiverEmail, request.Message);
+            var result = await _emailService.SendEmail(request.ReceiverEmail, request.Message, "Confirm email");
             if (result)
                 return Success();
             return BadRequest<string>("Something went wrong while sending email.");

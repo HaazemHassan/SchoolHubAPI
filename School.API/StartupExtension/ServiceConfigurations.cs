@@ -14,6 +14,7 @@ namespace School.API.StartupExtension
             AuthenticationServiceConfiguations(services, configuration);
             SwaggerServiceConfiguations(services, configuration);
             EmailServiceConfiguations(services, configuration);
+            AutorizationServiceConfiguations(services, configuration);
             return services;
         }
 
@@ -88,6 +89,20 @@ namespace School.API.StartupExtension
             var emailSettings = new EmailSettings();
             configuration.GetSection("emailSettings").Bind(emailSettings);
             services.AddSingleton(emailSettings);
+            return services;
+        }
+
+        private static IServiceCollection AutorizationServiceConfiguations(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("ResetPasswordPolicy", policy =>
+                {
+                    policy.RequireAuthenticatedUser();
+
+                    policy.RequireClaim("purpose", "reset-password");
+                });
+            });
             return services;
         }
 

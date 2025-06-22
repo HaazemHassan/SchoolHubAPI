@@ -44,5 +44,19 @@ namespace School.API.Controllers
             var result = await _mediator.Send(command);
             return NewResult(result);
         }
+
+        [HttpPost("password-reset/send-email")]
+        public async Task<IActionResult> PasswordResetEmail([FromForm] SendResetPasswordCodeCommand command)
+        {
+            var result = await _mediator.Send(command);
+            return NewResult(result);
+        }
+
+        [HttpPost("password-reset/verify-code")]
+        public async Task<IActionResult> VerifyPasswordResetCode([FromForm] VerifyResetPasswordCodeCommand command)
+        {
+            var result = await _mediator.Send(command);
+            return NewResult(result);
+        }
     }
 }

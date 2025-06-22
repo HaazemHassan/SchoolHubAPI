@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using School.Data.Entities;
 using School.Data.Entities.IdentityEntities;
 using School.Data.Helpers.Authentication;
+using School.Infrastructure.Context;
 using School.Infrastructure.RepositoriesContracts;
 using School.Services.Bases;
 using School.Services.ServicesContracts;
@@ -20,15 +22,19 @@ namespace School.Services.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly IApplicationUserService _applicationUserService;
+        private readonly AppDbContext _context;
+        private readonly IEmailService _emailService;
 
 
 
-        public AuthenticationService(JwtSettings jwtSettings, UserManager<ApplicationUser> userManager, IRefreshTokenRepository refreshTokenRepository, IApplicationUserService applicationUserService)
+        public AuthenticationService(JwtSettings jwtSettings, UserManager<ApplicationUser> userManager, IRefreshTokenRepository refreshTokenRepository, IApplicationUserService applicationUserService, AppDbContext context, IEmailService emailService)
         {
             _jwtSettings = jwtSettings;
             _userManager = userManager;
             _refreshTokenRepository = refreshTokenRepository;
             _applicationUserService = applicationUserService;
+            _context = context;
+            _emailService = emailService;
         }
 
 
@@ -123,32 +129,89 @@ namespace School.Services.Services
             }
         }
 
-        public async Task<ServiceOpertaionResult> ConfirmEmailAsync(int userId, string code)
+        public async Task<ServiceOpertaionResult> SendResetPasswordCodeAsync(string email)
         {
-            if (code is null)
+            if (email is null)
+                return ServiceOpertaionResult.InvalidParameters;
+
+            await using var trans = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(email);
+                if (user is null)
+                    return ServiceOpertaionResult.Failed;   //return generic error for security
+
+                //we should handle old codes before generating a new one
+                var oldCodes = await _context.ResetPasswordCodes.Where(x => x.UserId == user.Id).ExecuteDeleteAsync();
+
+
+                var code = new Random().Next(100000, 999999).ToString("D6");
+                var hashedCode = BCrypt.Net.BCrypt.HashPassword(code);
+                var resetCode = new ResetPasswordCode
+                {
+                    UserId = user.Id,
+                    HashedCode = hashedCode,
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(10),
+                    IsUsed = false
+                };
+
+                await _context.ResetPasswordCodes.AddAsync(resetCode);
+                await _context.SaveChangesAsync();
+                await _emailService.SendEmail(email, $"Your Reset Password Code is: {code}", "Reset password");
+                await trans.CommitAsync();
+                return ServiceOpertaionResult.Succeeded;
+            }
+            catch
+            {
+                await trans.RollbackAsync();
                 return ServiceOpertaionResult.Failed;
-
-            var user = await _userManager.FindByIdAsync(userId.ToString());
-            if (user is null)
-                return ServiceOpertaionResult.NotExist;
-
-            if (user.EmailConfirmed)
-                return ServiceOpertaionResult.Failed;
-
-            var confirmEmail = await _userManager.ConfirmEmailAsync(user, code);
-            return confirmEmail.Succeeded ? ServiceOpertaionResult.Succeeded : ServiceOpertaionResult.Failed;
-
+            }
         }
 
+        public async Task<JwtResult?> VerifyResetPasswordCodeAsync(string email, string code)
+        {
+            if (email is null || code is null)
+                return null;
+
+            await using var trans = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(email);
+                if (user is null)
+                    return null;
+
+                var resetCode = await _context.ResetPasswordCodes
+                    .FirstOrDefaultAsync(x => x.UserId == user.Id);
+
+                if (resetCode == null || !resetCode.IsValid) return null;
+
+                bool isCodeValid = BCrypt.Net.BCrypt.Verify(code, resetCode.HashedCode);
+                if (!isCodeValid) return null;
+                resetCode.IsUsed = true;
+                await _context.SaveChangesAsync();
+
+                var temporaryToken = await GeneratePasswordResetToken(user);
+                await trans.CommitAsync();
+                return temporaryToken;
+
+            }
+            catch
+            {
+                await trans.RollbackAsync();
+                return null;
+            }
+        }
+
+
         #region Helper functions
-        private async Task<JwtSecurityToken> GenerateAccessToken(ApplicationUser user)
+        private async Task<JwtSecurityToken> GenerateAccessToken(ApplicationUser user, List<Claim>? claims = null, DateTime? expDate = null)
         {
             return new JwtSecurityToken(
                   issuer: _jwtSettings.Issuer,
                   audience: _jwtSettings.Audience,
-                  claims: await GetUserClaims(user),
+                  claims: claims ?? await GetUserClaims(user),
                   signingCredentials: GetSigningCredentials(),
-                  expires: DateTime.UtcNow.AddDays(_jwtSettings.AccessTokenExpirationMinutes)
+                  expires: expDate ?? DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes)
               );
         }
         private async Task<List<Claim>> GetUserClaims(ApplicationUser user)
@@ -215,6 +278,21 @@ namespace School.Services.Services
             return response;
         }
 
+        private async Task<JwtResult?> GeneratePasswordResetToken(ApplicationUser user)
+        {
+            if (user is null)
+                return null;
+
+            var userClaims = await GetUserClaims(user);
+            userClaims.Add(new Claim("purpose", "reset-password"));
+            var jwtSecurityToken = await GenerateAccessToken(user, userClaims, DateTime.UtcNow.AddMinutes(5));
+
+            JwtResult jwtResult = new JwtResult
+            {
+                AccessToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
+            };
+            return jwtResult;
+        }
 
 
         #endregion
