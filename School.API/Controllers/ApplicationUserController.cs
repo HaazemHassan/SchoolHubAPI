@@ -1,8 +1,10 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using School.API.Bases;
 using School.Core.Features.User.Commands.Models;
 using School.Core.Features.User.Queries.Models;
+using System.Security.Claims;
 
 public class ApplicationUserController : CustomControllerBase
 {
@@ -44,10 +46,27 @@ public class ApplicationUserController : CustomControllerBase
         return NewResult(result);
     }
 
-    [HttpPatch("{id:int}/password")]
+    [HttpPatch("update-password/{id:int}")]
     public async Task<IActionResult> UpdatePassword([FromRoute] int id, [FromBody] ChangePasswordCommand command)
     {
         command.Id = id;
+        var result = await mediator.Send(command);
+        return NewResult(result);
+    }
+
+    [HttpPatch("reset-password")]
+    [Authorize(policy: "ResetPasswordPolicy")]
+    public async Task<IActionResult> ResetPassword([FromForm] ResetPasswordCommand command)
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (int.TryParse(userIdClaim, out var userId))
+        {
+            command.UserId = userId;
+        }
+        else
+        {
+            return Unauthorized("Invalid token or user ID not found.");
+        }
         var result = await mediator.Send(command);
         return NewResult(result);
     }

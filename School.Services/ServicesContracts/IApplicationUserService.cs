@@ -9,7 +9,8 @@ namespace School.Services.ServicesContracts
         public Task<bool> IsUserExist(Expression<Func<ApplicationUser, bool>> predicate);
         public Task<ServiceOpertaionResult> AddApplicationUser(ApplicationUser user, string password);
         public Task<bool> SendConfirmationEmailAsync(ApplicationUser user);
-
+        public Task<ServiceOpertaionResult> ConfirmEmailAsync(int userId, string code);
+        public Task<ServiceOpertaionResult> ResetPasswordAsync(ApplicationUser user, string newPassword);
 
     }
 }
