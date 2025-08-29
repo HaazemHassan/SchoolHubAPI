@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
 using School.API.StartupExtension;
@@ -11,25 +10,18 @@ using School.Core;
 using School.Core.Middleware;
 using School.Data.Entities.IdentityEntities;
 using School.Infrastructure;
-using School.Infrastructure.Context;
 using School.Services;
 using System.Globalization;
 
-namespace School.API
-{
-    public class Program
-    {
-        public async static Task Main(string[] args)
-        {
+namespace School.API {
+    public class Program {
+        public async static Task Main(string[] args) {
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
 
             builder.Services.AddControllers();
-            builder.Services.AddDbContext<AppDbContext>(options =>
-            {
-                options.UseSqlServer(builder.Configuration["ConnectionStrings:SqlServerConStr"]);
-            });
+
 
             #region Depenedencies
 
@@ -41,13 +33,11 @@ namespace School.API
 
             #region Localizaion
 
-            builder.Services.AddLocalization(opt =>
-            {
+            builder.Services.AddLocalization(opt => {
                 opt.ResourcesPath = "";
             });
 
-            builder.Services.Configure<RequestLocalizationOptions>(options =>
-            {
+            builder.Services.Configure<RequestLocalizationOptions>(options => {
                 List<CultureInfo> supportedCultures = new List<CultureInfo>
                 {
                     new CultureInfo("en-US"),
@@ -62,15 +52,13 @@ namespace School.API
             #endregion
 
             #region CORS
-            var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
-            builder.Services.AddCors(options =>
-            {
+            var MyAllowSpecificOrigins = "AngularChatApp";
+            builder.Services.AddCors(options => {
                 options.AddPolicy(name: MyAllowSpecificOrigins,
-                                  policy =>
-                                  {
-                                      policy.AllowAnyOrigin()
-                                             .AllowAnyHeader()
-                                             .AllowAnyMethod();
+                                  policy => {
+                                      policy.AllowAnyHeader()
+                                             .AllowAnyMethod()
+                                             .WithOrigins("http://localhost:4200");
 
                                   });
             });
@@ -79,16 +67,14 @@ namespace School.API
 
             //used in ApplicationUserService/SendConfirmationEmail method
             builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
-            builder.Services.AddTransient<IUrlHelper>(x =>
-            {
+            builder.Services.AddTransient<IUrlHelper>(x => {
                 var actionContext = x.GetRequiredService<IActionContextAccessor>().ActionContext;
                 var factory = x.GetRequiredService<IUrlHelperFactory>();
                 return factory.GetUrlHelper(actionContext);
             });
             var app = builder.Build();
             #region Seed Data
-            using (var scope = app.Services.CreateScope())
-            {
+            using (var scope = app.Services.CreateScope()) {
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
                 await ApplicationRoleSeeder.SeedAsync(roleManager);
@@ -96,12 +82,10 @@ namespace School.API
             }
             #endregion
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
+            if (app.Environment.IsDevelopment()) {
                 // Temporary workaround: Downgrade Swagger to OpenAPI 2.0
                 // Reason: Package -> Swashbuckle.AspNetCore.Annotations (v8.1.1) is not fully compatible with OpenAPI 3.x
-                app.UseSwagger(c =>
-                {
+                app.UseSwagger(c => {
                     c.OpenApiVersion = OpenApiSpecVersion.OpenApi2_0;
                 });
                 app.UseSwaggerUI();

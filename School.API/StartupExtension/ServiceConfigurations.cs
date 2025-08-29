@@ -5,12 +5,9 @@ using School.Data.Helpers.Authentication;
 using School.Data.Helpers.Email;
 using System.Text;
 
-namespace School.API.StartupExtension
-{
-    public static class ServiceConfigurations
-    {
-        public static IServiceCollection ConfigureServices(this IServiceCollection services, IConfiguration configuration)
-        {
+namespace School.API.StartupExtension {
+    public static class ServiceConfigurations {
+        public static IServiceCollection ConfigureServices(this IServiceCollection services, IConfiguration configuration) {
             AuthenticationServiceConfiguations(services, configuration);
             SwaggerServiceConfiguations(services, configuration);
             EmailServiceConfiguations(services, configuration);
@@ -19,24 +16,20 @@ namespace School.API.StartupExtension
         }
 
 
-        private static IServiceCollection AuthenticationServiceConfiguations(this IServiceCollection services, IConfiguration configuration)
-        {
+        private static IServiceCollection AuthenticationServiceConfiguations(this IServiceCollection services, IConfiguration configuration) {
             //JWT Authentication
             var jwtSettings = new JwtSettings();
             configuration.GetSection(nameof(jwtSettings)).Bind(jwtSettings);
             services.AddSingleton(jwtSettings);
 
-            services.AddAuthentication(x =>
-            {
+            services.AddAuthentication(x => {
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-           .AddJwtBearer(x =>
-           {
+           .AddJwtBearer(x => {
                x.RequireHttpsMetadata = false;
                x.SaveToken = true;
-               x.TokenValidationParameters = new TokenValidationParameters
-               {
+               x.TokenValidationParameters = new TokenValidationParameters {
                    ValidateIssuer = jwtSettings.ValidateIssuer,
                    ValidIssuers = new[] { jwtSettings.Issuer },
                    ValidateIssuerSigningKey = jwtSettings.ValidateIssuerSigningKey,
@@ -49,17 +42,14 @@ namespace School.API.StartupExtension
             return services;
         }
 
-        private static IServiceCollection SwaggerServiceConfiguations(this IServiceCollection services, IConfiguration configuration)
-        {
+        private static IServiceCollection SwaggerServiceConfiguations(this IServiceCollection services, IConfiguration configuration) {
             //Swagger Gn
             services.AddEndpointsApiExplorer();
-            services.AddSwaggerGen(c =>
-            {
+            services.AddSwaggerGen(c => {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "School Project", Version = "v1" });
                 c.EnableAnnotations();
 
-                c.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
-                {
+                c.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme {
                     Description = "JWT Authorization header using the Bearer scheme (Example: 'Bearer 12345abcdef')",
                     Name = "Authorization",
                     In = ParameterLocation.Header,
@@ -84,20 +74,16 @@ namespace School.API.StartupExtension
             });
             return services;
         }
-        private static IServiceCollection EmailServiceConfiguations(this IServiceCollection services, IConfiguration configuration)
-        {
+        private static IServiceCollection EmailServiceConfiguations(this IServiceCollection services, IConfiguration configuration) {
             var emailSettings = new EmailSettings();
             configuration.GetSection("emailSettings").Bind(emailSettings);
             services.AddSingleton(emailSettings);
             return services;
         }
 
-        private static IServiceCollection AutorizationServiceConfiguations(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy("ResetPasswordPolicy", policy =>
-                {
+        private static IServiceCollection AutorizationServiceConfiguations(this IServiceCollection services, IConfiguration configuration) {
+            services.AddAuthorization(options => {
+                options.AddPolicy("ResetPasswordPolicy", policy => {
                     policy.RequireAuthenticatedUser();
 
                     policy.RequireClaim("purpose", "reset-password");
